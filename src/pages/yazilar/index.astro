@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+const yazilar = (await getCollection('yazilar', ({ data }) => import.meta.env.DEV || !data.taslak))
+  .sort((a, b) => b.data.tarih.valueOf() - a.data.tarih.valueOf());
+
+const tarih = (d: Date) => d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<Base title="Yazılar" description="Güncel hukuki gelişmelere ilişkin bilgilendirici yazılar.">
+  <section class="band">
+    <div class="wrap">
+      <h2>Yazılar</h2>
+      <div>
+        {yazilar.length > 0 ? (
+          <div class="posts">
+            {yazilar.map((y) => (
+              <a class="post" href={`/yazilar/${y.id}`}>
+                <h3>{y.data.baslik}</h3>
+                <span class="tag">{y.data.alan}{y.data.taslak && ' · Taslak'}</span>
+                <p>{y.data.ozet}</p>
+                <p style="font-size:.85rem"><time datetime={y.data.tarih.toISOString()}>{tarih(y.data.tarih)}</time></p>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <p class="note">İlk yazılar hazırlanıyor.</p>
+        )}
+      </div>
+    </div>
+  </section>
+</Base>

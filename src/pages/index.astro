@@ -1,0 +1,118 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Iletisim from '../components/Iletisim.astro';
+import { site } from '../data/site';
+
+// Ana sayfa, ekip koleksiyonundaki ilk sıradaki avukatı tanıtır.
+const ekip = (await getCollection('ekip')).sort((a, b) => a.data.sira - b.data.sira);
+const avukat = ekip[0];
+const { Content: Hakkinda } = await render(avukat);
+
+// Yayındaki yazılar; geliştirme modunda taslaklar da görünür.
+const tumYazilar = await getCollection('yazilar', ({ data }) => import.meta.env.DEV || !data.taslak);
+const yazilar = tumYazilar
+  .sort((a, b) => b.data.tarih.valueOf() - a.data.tarih.valueOf())
+  .slice(0, 3);
+---
+
+<Base>
+  <div class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">{avukat.data.baro}{avukat.data.sicilNo && ` · Sicil No ${avukat.data.sicilNo}`}</p>
+        <h1>{avukat.data.ad} <small>Bakırköy, İstanbul</small></h1>
+        <p class="lede">
+          İş, ceza, sözleşmeler, gayrimenkul ve icra hukuku alanlarında avukatlık hizmeti vermektedir.
+          Bu sitede, güncel hukuki gelişmelere ilişkin bilgilendirici yazılara da yer verilmektedir.
+        </p>
+        <div class="meta">
+          {avukat.data.egitim.map((e) => (
+            <span><b>{e.kurum}</b> {e.program.split(',')[0]}</span>
+          ))}
+        </div>
+      </div>
+      {avukat.data.foto && (
+        <div class="portrait">
+          <img src={avukat.data.foto} alt={avukat.data.ad} width="1440" height="1440" loading="eager" />
+        </div>
+      )}
+    </div>
+  </div>
+
+  <section class="band" id="hakkimda">
+    <div class="wrap">
+      <h2>Hakkımda</h2>
+      <div class="prose">
+        <Hakkinda />
+        {avukat.data.egitim.length > 0 && (
+          <div class="edu">
+            {avukat.data.egitim.map((e) => (
+              <div>
+                <span class="donem">{e.donem}</span>
+                <div><strong>{e.kurum}</strong><span>{e.program}</span></div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="calisma-alanlari">
+    <div class="wrap">
+      <h2>Çalışma Alanları</h2>
+      <div class="areas">
+        {site.calismaAlanlari.map((a) => (
+          <div class="area">
+            <h3>{a.ad}</h3>
+            <p>{a.aciklama}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="yazilar">
+    <div class="wrap">
+      <h2>Yazılar</h2>
+      <div>
+        {yazilar.length > 0 ? (
+          <div class="posts">
+            {yazilar.map((y) => (
+              <a class="post" href={`/yazilar/${y.id}`}>
+                <h3>{y.data.baslik}</h3>
+                <span class="tag">{y.data.alan}{y.data.taslak && ' · Taslak'}</span>
+                <p>{y.data.ozet}</p>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <p class="note">İlk yazılar hazırlanıyor.</p>
+        )}
+        {yazilar.length > 0 && (
+          <p style="margin-top:18px"><a class="btn" href="/yazilar">Tüm yazılar</a></p>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <Iletisim />
+</Base>
+
+<style>
+  .hero .wrap { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: end; padding-block: 56px 48px; }
+  .hero h1 { font-size: clamp(2.4rem, 6vw, 4rem); margin-top: 14px; }
+  .hero h1 small { display: block; font-size: .42em; font-weight: 400; font-style: italic; color: var(--muted); margin-top: 6px; }
+  .lede { font-size: 1.1rem; max-width: 34em; margin-top: 22px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 28px; font-size: .92rem; color: var(--muted); }
+  .meta span b { color: var(--fg); font-weight: 500; }
+  .portrait { position: relative; justify-self: end; width: min(100%, 360px); }
+  .portrait img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; object-position: top; border-radius: 4px; background: var(--green-soft); }
+  .portrait::after { content: ""; position: absolute; left: -10px; top: 18px; bottom: -10px; width: 6px; background: var(--green); border-radius: 3px; }
+
+  @media (max-width: 760px) {
+    .hero .wrap { grid-template-columns: 1fr; padding-block: 36px; }
+    .portrait { justify-self: start; order: -1; width: min(70%, 260px); }
+  }
+</style>

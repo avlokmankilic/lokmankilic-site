@@ -1,0 +1,48 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+
+// Bu sayfa, src/content/ekip/ altındaki tüm avukatları listeler.
+// Tek avukat varken menüde görünmez ama adres çubuğundan açılabilir.
+const ekip = (await getCollection('ekip')).sort((a, b) => a.data.sira - b.data.sira);
+const uyeler = await Promise.all(
+  ekip.map(async (u) => ({ ...u, Content: (await render(u)).Content }))
+);
+---
+
+<Base title="Ekip" description="Büromuzda görev yapan avukatlar.">
+  <section class="band">
+    <div class="wrap">
+      <h2>Ekip</h2>
+      <div class="team">
+        {uyeler.map((u) => (
+          <div class="member" id={u.id}>
+            {u.data.foto && <img src={u.data.foto} alt={u.data.ad} width="480" height="480" loading="lazy" />}
+            <div class="member-body">
+              <p class="eyebrow">{u.data.baro}{u.data.sicilNo && ` · Sicil No ${u.data.sicilNo}`}</p>
+              <h3>{u.data.ad}</h3>
+              {u.data.alanlar.length > 0 && <p class="alanlar">{u.data.alanlar.join(' · ')}</p>}
+              <div class="prose"><u.Content /></div>
+              {u.data.eposta && <p class="eposta"><span>{u.data.eposta}</span></p>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .team { display: grid; gap: 40px; }
+  .member { display: grid; grid-template-columns: 200px 1fr; gap: 28px; align-items: start; }
+  .member img { width: 100%; aspect-ratio: 1; object-fit: cover; object-position: top; border-radius: 4px; background: var(--green-soft); }
+  .member-body { display: grid; gap: 10px; min-width: 0; }
+  .member h3 { font-size: 1.7rem; }
+  .alanlar { color: var(--muted); font-size: .95rem; }
+  .eposta { font-size: .95rem; }
+  .eposta span { user-select: all; }
+  @media (max-width: 640px) {
+    .member { grid-template-columns: 1fr; }
+    .member img { width: min(60%, 220px); }
+  }
+</style>

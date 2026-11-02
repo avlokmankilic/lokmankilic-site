@@ -1,0 +1,45 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const yazilar = await getCollection('yazilar', ({ data }) => import.meta.env.DEV || !data.taslak);
+  return yazilar.map((y) => ({ params: { id: y.id }, props: { yazi: y } }));
+}
+
+const { yazi } = Astro.props;
+const { Content } = await render(yazi);
+const yazar = await getEntry('ekip', yazi.data.yazar);
+const tarih = yazi.data.tarih.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<Base title={yazi.data.baslik} description={yazi.data.ozet}>
+  <article>
+    <div class="wrap">
+      <header class="post-head">
+        <p class="eyebrow">{yazi.data.alan}{yazi.data.taslak && ' · Taslak'}</p>
+        <h1>{yazi.data.baslik}</h1>
+        <p class="byline">
+          {yazar && <span>{yazar.data.ad}</span>}
+          <time datetime={yazi.data.tarih.toISOString()}>{tarih}</time>
+        </p>
+      </header>
+      <div class="prose">
+        <Content />
+      </div>
+      <p class="disclaimer">
+        Bu yazı genel bilgilendirme amacıyla hazırlanmıştır; hukuki görüş veya danışmanlık niteliği taşımaz.
+      </p>
+      <p><a class="btn" href="/yazilar">← Tüm yazılar</a></p>
+    </div>
+  </article>
+</Base>
+
+<style>
+  article .wrap { max-width: 760px; display: grid; gap: 28px; padding-block: 48px 64px; }
+  .post-head { display: grid; gap: 12px; }
+  .post-head h1 { font-size: clamp(2rem, 5vw, 2.8rem); }
+  .byline { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: .92rem; }
+  .prose { font-size: 1.05rem; }
+  .disclaimer { font-size: .85rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; max-width: 62ch; }
+</style>

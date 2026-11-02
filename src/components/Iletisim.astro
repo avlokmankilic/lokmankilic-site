@@ -1,0 +1,60 @@
+---
+import { site } from '../data/site';
+---
+
+<section class="band" id="iletisim">
+  <div class="wrap">
+    <h2>İletişim</h2>
+    <div class="contact">
+      <dl>
+        <div>
+          <dt>Büro adresi</dt>
+          <dd>
+            <span>{site.adres}</span>
+            <a class="btn" href={site.adresHarita} target="_blank" rel="noopener">Haritada aç</a>
+          </dd>
+        </div>
+        <div>
+          <dt>E-posta</dt>
+          <dd>
+            <span data-kopyala>{site.eposta}</span>
+            <button class="btn" type="button" data-kopyala-dugme>Kopyala</button>
+            <a class="btn primary" href={`mailto:${site.eposta}`}>E-posta gönder</a>
+          </dd>
+        </div>
+        <div>
+          <dt>Telefon</dt>
+          <dd>
+            <span data-kopyala>{site.telefon}</span>
+            <button class="btn" type="button" data-kopyala-dugme>Kopyala</button>
+            <a class="btn primary" href={`tel:${site.telefonTel}`}>Ara</a>
+          </dd>
+        </div>
+      </dl>
+      <p style="color:var(--muted);font-size:.95rem">
+        Görüşmeler randevu ile yapılmaktadır. İlk iletişim için e-posta veya telefon ile ulaşabilirsiniz.
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-kopyala-dugme]').forEach((btn) => {
+    const src = btn.parentElement?.querySelector<HTMLElement>('[data-kopyala]');
+    if (!src) return;
+    btn.addEventListener('click', async () => {
+      const text = src.textContent?.trim() ?? '';
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = 'Kopyalandı';
+        setTimeout(() => (btn.textContent = 'Kopyala'), 1800);
+      } catch {
+        const r = document.createRange();
+        r.selectNodeContents(src);
+        const s = window.getSelection();
+        s?.removeAllRanges();
+        s?.addRange(r);
+      }
+    });
+  });
+</script>
