@@ -1,0 +1,9 @@
+{
+  // Cloudflare yayın ayarı: build sonrası dist/ klasörü statik site olarak yayınlanır.
+  "name": "lokmankilic-site",
+  "compatibility_date": "2025-10-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
